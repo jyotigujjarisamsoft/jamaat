@@ -1,1 +1,7 @@
-# jamaat
+## Jamaat
+
+For dubai jamaat
+
+#### License
+
+mit
