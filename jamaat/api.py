@@ -51,7 +51,7 @@ def create_user_on_approve(email_id, first_name, password, its_number):
             "email": email_id,
             "first_name": first_name,
             "enabled": 1,
-            "send_welcome_email":0,
+            "send_welcome_email": 0,
             "roles": [{"role": "ITS Member"}],  # Assign ITS Member role
             "new_password": password  # Set the password
         })
@@ -61,47 +61,83 @@ def create_user_on_approve(email_id, first_name, password, its_number):
         user_permission = frappe.get_doc({
             "doctype": "User Permission",
             "user": email_id,
-            "allow": "ITS Data",  # Change this if the doctype is different
-            "for_value": its_number,  # Set the ITS number here
-            "apply_to_all_doctypes": 1  # Apply to all document types
+            "allow": "ITS Data",
+            "for_value": its_number,
+            "apply_to_all_doctypes": 1
         })
         user_permission.insert(ignore_permissions=True)
+
+        # Check if Contact Details already exist
+        if not frappe.db.exists("Contact Details", {"its_number": its_number}):
+            # Create Contact Details doctype
+            contact_details = frappe.get_doc({
+                "doctype": "Contact Details",
+                "its_number": its_number,
+                # Add more fields here if needed
+            })
+            contact_details.insert(ignore_permissions=True)
+        else:
+            frappe.log_error(f"Contact Details for ITS Number {its_number} already exist.")
+
+        # Check if Household Budget already exists
+        if not frappe.db.exists("Household Budget Main", {"its_number": its_number}):
+            # Create Household Budget doctype
+            household_budget = frappe.get_doc({
+                "doctype": "Household Budget Main",
+                "its_number": its_number,
+                # Add more fields here if needed
+            })
+            household_budget.insert(ignore_permissions=True)
+        else:
+            frappe.log_error(f"Household Budget for ITS Number {its_number} already exist.")
+
+        # Fetch form details based on ITS number
         form_details = frappe.db.sql("""
-        SELECT
-            name AS form_name
-            
-        FROM
-            `tabMuwasaat Form`
-        
-        WHERE
-            its_no = '"""+its_number+"""'
-    """, as_dict=True)
-        print("form_details",form_details[0]['form_name'])
-        name=form_details[0]['form_name']
-        # Generate the link to the Muwasaat Form
-        form_url = f"https://dubaijamaat.frappe.cloud/app/muwasaat-form/{name}"
+            SELECT
+                name AS form_name
+            FROM
+                `tabMuwasaat Form`
+            WHERE
+                its_no = %s
+        """, its_number, as_dict=True)
 
-        # Send the email
-        frappe.sendmail(
-            recipients=[email_id],
-            subject="Access to Muwasaat Form",
-            message=f"""
-            Dear {first_name},
+        if form_details:
+            name = form_details[0]['form_name']
+            # Generate the link to the Muwasaat Form
+            form_url = f"https://dubaijamaat.frappe.cloud/app/contact-details/{its_number}"
 
-            Your account has been created successfully. You can now access the Muwasaat Form by clicking the link below:
+            # Send the email
+            frappe.sendmail(
+                recipients=[email_id],
+                subject="Access to Muwasaat Form",
+                message=f"""
+                Dear {first_name},
 
-            <a href="{form_url}">{form_url}</a>
+                Your account has been created successfully.Please fallow below step to Process your application.
+                1.Please click on the link below  and login with credentials provided.
+                2.Fill all data provided in Contact Details Application and submit.
+                3.Fill all data in Householdhold Budget Main Application and Submit.
+                4.Once you click on submit button you will redirect to Muwasaat Form List.
+                5.Now click on application you created and fill all sections and save.
+                6.After filling all data please check Application Filled checkbox and save again after your application you go for verification.
+                7.Once verification is completed,you will receive an email for Application Status.
 
-            Use the following credentials to log in:
-            Username: {email_id}
-            Password: {password}
+                <a href="{form_url}">{form_url}</a>
 
-            Regards,
-            Your Company
-            """
-        )
+                Use the following credentials to log in:
+                Username: {email_id}
+                Password: {password}
 
-        return "User created and email sent successfully!"
+                Regards,
+                Your Company
+                """
+            )
+
+        return "User, related doctypes, and email sent successfully!"
+    else:
+        return "User already exists!"
+
+
 
         
 
