@@ -135,7 +135,50 @@ def create_user_on_approve(email_id, first_name, password, its_number):
 
         return "User, related doctypes, and email sent successfully!"
     else:
+        print("user already exist")
+        form_url = f"https://dubaijamaat.frappe.cloud/app/muwasaat-form"
+
+        # Send the email
+        frappe.sendmail(
+            recipients=[email_id],
+            subject="Access to Muwasaat Form",
+            message=f"""
+            Dear {first_name},
+
+            Your account has been created successfully.Please fallow below step to Process your application.
+            1.Please click on the link below  and login with credentials provided.
+            2.Fill all data provided in Muwasaat Form Application and submit.
+            3.Once verification is completed,you will receive an email for Application Status.
+
+            <a href="{form_url}">{form_url}</a>
+
+            Use the following credentials to log in:
+            Username: {email_id}
+            Password: {password}
+
+            Regards,
+            Your Company
+            """
+        )
         return "User already exists!"
+
+        
+
+
+@frappe.whitelist()
+def create_tracker(application_id, applicant_its_no):
+    # Check if the user already exists
+    print("entered in tracker doctype")
+    # Create Contact Details doctype
+    tracker_details = frappe.get_doc({
+        "doctype": "Muwasaat Tracker",
+        "application_id":application_id,
+        "applicant_its_no": applicant_its_no
+
+        # Add more fields here if needed
+    })
+    print("created in tracker doctype")
+    tracker_details.insert(ignore_permissions=True)
 
 
 
