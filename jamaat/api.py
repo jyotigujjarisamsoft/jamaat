@@ -42,7 +42,7 @@ def fetch_comments(reference_name,its_no):
 		frappe.db.commit()
 
 @frappe.whitelist()
-def create_user_on_approve(email_id, first_name, password, its_number):
+def create_user_on_approve(email_id, first_name, password, its_number,form_name):
     # Check if the user already exists
     if not frappe.db.exists("User", email_id):
         # Create a new User document
@@ -96,9 +96,9 @@ def create_user_on_approve(email_id, first_name, password, its_number):
             SELECT
                 name AS form_name
             FROM
-                `tabMuwasaat Form`
+                `tabContact Details`
             WHERE
-                its_no = %s
+                its_number = %s
         """, its_number, as_dict=True)
 
         if form_details:
@@ -136,33 +136,46 @@ def create_user_on_approve(email_id, first_name, password, its_number):
         return "User, related doctypes, and email sent successfully!"
     else:
         print("user already exist")
-        form_url = f"https://dubaijamaat.frappe.cloud/app/muwasaat-form"
+        # Fetch form details based on ITS number
+        form_details = frappe.db.sql("""
+            SELECT
+                name AS form_name
+            FROM
+                `tabMuwasaat Form`
+            WHERE
+                hof_its_number = %s
+        """, its_number, as_dict=True)
 
-        # Send the email
-        frappe.sendmail(
-            recipients=[email_id],
-            subject="Access to Muwasaat Form",
-            message=f"""
-            Dear {first_name},
+        if form_details:
+            name = form_details[0]['form_name']
+            # Generate the link to the Muwasaat Form
+            #form_url = f"http://127.0.0.1:8000/app/contact-details/{its_number}"
 
-            Your account has been created successfully.Please fallow below step to Process your application.
-            1.Please click on the link below  and login with credentials provided.
-            2.Fill all data provided in Muwasaat Form Application and submit.
-            3.Once verification is completed,you will receive an email for Application Status.
+            form_url = f"https://dubaijamaat.frappe.cloud/app/muwasaat-form/{form_name}"
 
-            <a href="{form_url}">{form_url}</a>
+            # Send the email
+            frappe.sendmail(
+                recipients=[email_id],
+                subject="Access to Muwasaat Form",
+                message=f"""
+                Dear {first_name},
 
-            Use the following credentials to log in:
-            Username: {email_id}
-            Password: {password}
+                Your account has been created successfully.Please fallow below step to Process your application.
+                1.Please click on the link below  and login with credentials provided.
+                2.Fill all data provided in Muwasaat Form Application and submit.
+                3.Once verification is completed,you will receive an email for Application Status.
 
-            Regards,
-            Your Company
-            """
-        )
+                <a href="{form_url}">{form_url}</a>
+
+                Use the following credentials to log in:
+                Username: {email_id}
+                Password: {password}
+
+                Regards,
+                Your Company
+                """
+            )
         return "User already exists!"
-
-        
 
 
 @frappe.whitelist()
@@ -179,6 +192,40 @@ def create_tracker(application_id, applicant_its_no):
     })
     print("created in tracker doctype")
     tracker_details.insert(ignore_permissions=True)
+
+    
+@frappe.whitelist()
+def check_previous_musawaat_data(purpose, hof_its_number, enayat_for_year):
+    # Check if the user already exists
+    print("entered in tracker doctype")
+    # Create Contact Details doctype
+    form_details = frappe.db.sql("""
+        SELECT
+            name,enayat_for_year,Purpose,hof_its_number
+        FROM
+            `tabMuwasaat Form`
+        WHERE
+            purpose = %s AND hof_its_number = %s AND enayat_for_year = %s
+        """, (purpose, hof_its_number, enayat_for_year), as_dict=True)
+    
+    print("check_previous_musawaat_data", form_details)
+    return form_details
+
+@frappe.whitelist()
+def check_previous_musawaat_data_education(purpose, its_no, enayat_for_year):
+    # Check if the user already exists
+    print("entered in education_form_details doctype")
+    # Create Contact Details doctype
+    education_form_details = frappe.db.sql("""
+        SELECT c.its_no,c.parent
+        FROM `tabMuwasaat Form` AS m
+        JOIN `tabMultiple Children Details` AS c 
+        ON m.name = c.parent 
+        and m.purpose = %s AND c.its_no = %s AND m.enayat_for_year = %s
+        """, (purpose, its_no, enayat_for_year), as_dict=True)
+    
+    print("check_previous_musawaat_data_education", education_form_details)
+    return education_form_details
 
 
 
