@@ -212,7 +212,7 @@ def check_previous_musawaat_data(purpose, hof_its_number, application_for_the_ye
     return form_details
 
 @frappe.whitelist()
-def check_previous_musawaat_data_education(purpose, hof_its_number, application_for_the_year):
+def check_previous_musawaat_data_education(purpose, its, application_for_the_year):
     # Check if the user already exists
     print("entered in education_form_details doctype")
     # Create Contact Details doctype
@@ -222,7 +222,7 @@ def check_previous_musawaat_data_education(purpose, hof_its_number, application_
         JOIN `tabMultiple Children Details` AS c 
         ON m.name = c.parent 
         and m.purpose = %s AND c.its = %s AND m.application_for_the_year = %s
-        """, (purpose, hof_its_number, application_for_the_year), as_dict=True)
+        """, (purpose, its, application_for_the_year), as_dict=True)
     
     print("check_previous_musawaat_data_education", education_form_details)
     return education_form_details
