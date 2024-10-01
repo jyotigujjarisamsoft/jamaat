@@ -108,30 +108,33 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
 
             # Send the email
             frappe.sendmail(
-                recipients=[email_id],
-                subject="Access to Muwasaat Form",
-                message=f"""
-                Dear {first_name},
+            recipients=[email_id],
+            subject="AEN Muwasaat Application Account Creation – Next Steps for Application Processing",
+            message=f"""
+            Dear {first_name},<br><br>
 
-                Your account has been created successfully.Please fallow below step to Process your application.
-                1.Please click on the link below  and login with credentials provided.
-                2.Fill all data provided in Contact Details Application and submit.
-                3.Fill all data in Householdhold Budget Main Application and Submit.
-                4.Once you click on submit button you will redirect to Muwasaat Form List.
-                5.Now click on application you created and fill all sections and save.
-                6.After filling all data please check Application Filled checkbox and save again after your application you go for verification.
-                7.Once verification is completed,you will receive an email for Application Status.
+            We are pleased to inform you that your account has been successfully created.<br>
+            Your Application is unique to your ITS No. only. Do not share it with anyone else.<br><br>
 
-                <a href="{form_url}">{form_url}</a>
+            Please follow the steps below to proceed with your application:<br>
+            1. Click the link below and log in using the credentials provided.<br>
+            2. Complete all the required information in the Muwasaat Form and submit your application.<br>
+            3. Attach all relevant attachments to the application in a single PDF file. The size of this PDF file should not exceed 1000 KB.<br>
+            4. Please verify all entered information accurately. Inaccurate or incomplete applications will be rejected.<br>
+            5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
 
-                Use the following credentials to log in:
-                Username: {email_id}
-                Password: {password}
+            <strong>Login Credentials:</strong><br>
+            Application URL: <a href="{form_url}">{form_url}</a><br>
+            Username: {email_id}<br>
+            Password: {password}<br><br>
 
-                Regards,
-                
-                """
-            )
+            If you have any questions or need further assistance, feel free to contact us.<br><br>
+
+            Wassalam,<br>
+            Umoor Marafiq Burhaniyah<br>
+            Anjuman Najmi, Dubai.
+            """
+        )
 
         return "User, related doctypes Created and email sent successfully!"
     else:
@@ -153,28 +156,34 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
 
             form_url = f"https://muwasaat.anjuman-najmi.com/app/muwasaat-form/{form_name}"
 
-            # Send the email
             frappe.sendmail(
-                recipients=[email_id],
-                subject="Access to Muwasaat Form",
-                message=f"""
-                Dear {first_name},
+            recipients=[email_id],
+            subject="AEN Muwasaat Application Created – Next Steps for Application Processing",
+            message=f"""
+            Dear {first_name},<br><br>
 
-                Your account has been created successfully.Please fallow below step to Process your application.
-                1.Please click on the link below  and login with credentials provided.
-                2.Fill all data provided in Muwasaat Form Application and submit.
-                3.Once verification is completed,you will receive an email for Application Status.
+            We are pleased to inform you that your application has been successfully created.<br>
+            Your Application is unique to your ITS No. only. Do not share it with anyone else.<br><br>
 
-                <a href="{form_url}">{form_url}</a>
+            Please follow the steps below to proceed with your application:<br>
+            1. Click the link below and log in using the credentials provided.<br>
+            2. Complete all the required information in the Muwasaat Form and submit your application.<br>
+            3. Attach all relevant attachments to the application in a single PDF file. The size of this PDF file should not exceed 1000 KB.<br>
+            4. Please verify all entered information accurately. Inaccurate or incomplete applications will be rejected.<br>
+            5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
 
-                Use the following credentials to log in:
-                Username: {email_id}
-                Password: {password}
+            <strong>Login Credentials:</strong><br>
+            Application URL: <a href="{form_url}">{form_url}</a><br>
+            Username: {email_id}<br>
+            Password: {password}<br><br>
 
-                Regards,
-                Your Company
-                """
-            )
+            If you have any questions or need further assistance, feel free to contact us.<br><br>
+
+            Wassalam,<br>
+            Umoor Marafiq Burhaniyah<br>
+            Anjuman Najmi, Dubai.
+            """
+        )
         return "User already exists and sent mail Successfully"
 
 
