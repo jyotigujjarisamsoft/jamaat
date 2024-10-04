@@ -71,7 +71,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
         if not frappe.db.exists("Household Details", {"its_number": hof_its_number}):
             # Create Contact Details doctype
             contact_details = frappe.get_doc({
-                "doctype": "Contact Details",
+                "doctype": "Household Details",
                 "its_number": hof_its_number,
                 # Add more fields here if needed
             })
