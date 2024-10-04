@@ -114,7 +114,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
 
             <strong>Login Credentials:</strong><br>
             Contact Details URL: <a href="{form_url}">{form_url}</a><br>
-            Muwasaat URL: <a href="{form_url}">{form_url}</a><br>
+            Muwasaat URL: <a href="{muwasaat_url}">{muwasaat_url}</a><br>
             Username: {email_id}<br>
             Password: {password}<br><br>
 
