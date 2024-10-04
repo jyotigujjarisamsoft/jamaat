@@ -68,7 +68,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
         user_permission.insert(ignore_permissions=True)
 
         # Check if Contact Details already exist
-        if not frappe.db.exists("Contact Details", {"its_number": hof_its_number}):
+        if not frappe.db.exists("Household Details", {"its_number": hof_its_number}):
             # Create Contact Details doctype
             contact_details = frappe.get_doc({
                 "doctype": "Contact Details",
@@ -79,24 +79,13 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
         else:
             frappe.log_error(f"Contact Details for ITS Number {hof_its_number} already exist.")
 
-        # Check if Household Budget already exists
-        if not frappe.db.exists("Household Budget Main", {"its_number": hof_its_number}):
-            # Create Household Budget doctype
-            household_budget = frappe.get_doc({
-                "doctype": "Household Budget Main",
-                "its_number": hof_its_number,
-                # Add more fields here if needed
-            })
-            household_budget.insert(ignore_permissions=True)
-        else:
-            frappe.log_error(f"Household Budget for ITS Number {hof_its_number} already exist.")
-
+        
         # Fetch form details based on ITS number
         form_details = frappe.db.sql("""
             SELECT
                 name AS form_name
             FROM
-                `tabContact Details`
+                `tabHousehold Details`
             WHERE
                 its_number = %s
         """, hof_its_number, as_dict=True)
@@ -104,8 +93,8 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
         if form_details:
             name = form_details[0]['form_name']
             # Generate the link to the Muwasaat Form
-            form_url = f"https://muwasaat.anjuman-najmi.com/app/contact-details/{hof_its_number}"
-
+            form_url = f"https://muwasaat.anjuman-najmi.com/webform-application/{hof_its_number}"
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
             # Send the email
             frappe.sendmail(
             recipients=[email_id],
@@ -124,7 +113,8 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
             5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
 
             <strong>Login Credentials:</strong><br>
-            Application URL: <a href="{form_url}">{form_url}</a><br>
+            Contact Details URL: <a href="{form_url}">{form_url}</a><br>
+            Muwasaat URL: <a href="{form_url}">{form_url}</a><br>
             Username: {email_id}<br>
             Password: {password}<br><br>
 
@@ -154,7 +144,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
             # Generate the link to the Muwasaat Form
             #form_url = f"http://127.0.0.1:8000/app/contact-details/{its_number}"
 
-            form_url = f"https://muwasaat.anjuman-najmi.com/app/muwasaat-form/{form_name}"
+            form_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
 
             frappe.sendmail(
             recipients=[email_id],
