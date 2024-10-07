@@ -45,6 +45,12 @@ def fetch_comments(reference_name,its_no):
 def create_user_on_approve(email_id, first_name, password, hof_its_number,form_name):
     # Check if the user already exists
     if not frappe.db.exists("User", email_id):
+        # List of all available modules in ERPNext
+        all_modules = frappe.get_all('Module Def', fields=['module_name'])
+
+        # Create a list of modules to block (exclude "Jamaat")
+        block_modules = [{"module": module.module_name} for module in all_modules if module.module_name != "Jamaat"]
+
         # Create a new User document
         user = frappe.get_doc({
             "doctype": "User",
@@ -53,6 +59,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
             "enabled": 1,
             "send_welcome_email": 0,
             "roles": [{"role": "ITS Member"}],  # Assign ITS Member role
+            "block_modules": block_modules,  # Block all except "Jamaat"
             "new_password": password  # Set the password
         })
         user.insert(ignore_permissions=True)
