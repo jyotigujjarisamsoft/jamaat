@@ -132,52 +132,44 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
         return "User, related doctypes created and email sent successfully!"
     else:
         # User already exists case
-        form_details = frappe.db.sql("""
-            SELECT name AS form_name
-            FROM `tabMuwasaat Form`
-            WHERE hof_its_number = %s
-        """, hof_its_number, as_dict=True)
+        # Determine Muwasaat form URL based on purpose
+        if purpose == "Household":
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/household/{form_name}"
+        elif purpose == "Education":
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/education/{form_name}"
+        elif purpose == "Medical":
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/medical/{form_name}"
+        else:
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
 
-        if form_details:
-            form_name = form_details[0]['form_name']
-            # Determine Muwasaat form URL based on purpose
-            if purpose == "Household":
-                muwasaat_url = f"https://muwasaat.anjuman-najmi.com/household/{form_name}"
-            elif purpose == "Education":
-                muwasaat_url = f"https://muwasaat.anjuman-najmi.com/education/{form_name}"
-            elif purpose == "Medical":
-                muwasaat_url = f"https://muwasaat.anjuman-najmi.com/medical/{form_name}"
-            else:
-                muwasaat_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
+        frappe.sendmail(
+            recipients=[email_id],
+            subject="AEN Muwasaat Application Created – Next Steps for Application Processing",
+            message=f"""
+            Dear {first_name},<br><br>
 
-            frappe.sendmail(
-                recipients=[email_id],
-                subject="AEN Muwasaat Application Created – Next Steps for Application Processing",
-                message=f"""
-                Dear {first_name},<br><br>
+            We are pleased to inform you that your application has been successfully created.<br>
+            Your Application is unique to your ITS No. only. Do not share it with anyone else.<br><br>
 
-                We are pleased to inform you that your application has been successfully created.<br>
-                Your Application is unique to your ITS No. only. Do not share it with anyone else.<br><br>
+            Please follow the steps below to proceed with your application:<br>
+            1. Click the link below and log in using the credentials provided.<br>
+            2. Complete all the required information in the Muwasaat Form and submit your application.<br>
+            3. Attach all relevant attachments to the application in a single PDF file. The size of this PDF file should not exceed 1000 KB.<br>
+            4. Please verify all entered information accurately. Inaccurate or incomplete applications will be rejected.<br>
+            5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
 
-                Please follow the steps below to proceed with your application:<br>
-                1. Click the link below and log in using the credentials provided.<br>
-                2. Complete all the required information in the Muwasaat Form and submit your application.<br>
-                3. Attach all relevant attachments to the application in a single PDF file. The size of this PDF file should not exceed 1000 KB.<br>
-                4. Please verify all entered information accurately. Inaccurate or incomplete applications will be rejected.<br>
-                5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
+            <strong>Login Credentials:</strong><br>
+            Application URL: <a href="{muwasaat_url}">{muwasaat_url}</a><br>
+            Username: {email_id}<br>
+            Password: {password}<br><br>
 
-                <strong>Login Credentials:</strong><br>
-                Application URL: <a href="{muwasaat_url}">{muwasaat_url}</a><br>
-                Username: {email_id}<br>
-                Password: {password}<br><br>
+            If you have any questions or need further assistance, feel free to contact us.<br><br>
 
-                If you have any questions or need further assistance, feel free to contact us.<br><br>
-
-                Wassalam,<br>
-                Umoor Marafiq Burhaniyah<br>
-                Anjuman Najmi, Dubai.
-                """
-            )
+            Wassalam,<br>
+            Umoor Marafiq Burhaniyah<br>
+            Anjuman Najmi, Dubai.
+            """
+        )
         return "User already exists and mail sent successfully."
 
 
