@@ -42,16 +42,15 @@ def fetch_comments(reference_name,its_no):
 		frappe.db.commit()
 
 @frappe.whitelist()
-def create_user_on_approve(email_id, first_name, password, hof_its_number,form_name):
+def create_user_on_approve(email_id, first_name, password, hof_its_number, form_name, purpose):
     # Check if the user already exists
     if not frappe.db.exists("User", email_id):
-        # List of all available modules in ERPNext
+        # Create a new User document
         all_modules = frappe.get_all('Module Def', fields=['module_name'])
 
         # Create a list of modules to block (exclude "Jamaat")
         block_modules = [{"module": module.module_name} for module in all_modules if module.module_name != "Jamaat"]
 
-        # Create a new User document
         user = frappe.get_doc({
             "doctype": "User",
             "email": email_id,
@@ -84,26 +83,23 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
             })
             contact_details.insert(ignore_permissions=True)
         else:
-            frappe.log_error(f"Contact Details for ITS Number {hof_its_number} already exist.")
+            frappe.log_error(f"Household Details for ITS Number {hof_its_number} already exist.")
 
-        
-        # Fetch form details based on ITS number
-        form_details = frappe.db.sql("""
-            SELECT
-                name AS form_name
-            FROM
-                `tabHousehold Details`
-            WHERE
-                its_number = %s
-        """, hof_its_number, as_dict=True)
-
-        if form_details:
-            name = form_details[0]['form_name']
-            # Generate the link to the Muwasaat Form
-            form_url = f"https://muwasaat.anjuman-najmi.com/webform-application/{hof_its_number}"
+        # Determine Muwasaat form URL based on purpose
+        if purpose == "Household":
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/household/{form_name}"
+        elif purpose == "Education":
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/education/{form_name}"
+        elif purpose == "Medical":
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/medical/{form_name}"
+        else:
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
-            # Send the email
-            frappe.sendmail(
+
+        # Generate the link to the Contact Details
+        form_url = f"https://muwasaat.anjuman-najmi.com/webform-application/{hof_its_number}"
+
+        # Send the email
+        frappe.sendmail(
             recipients=[email_id],
             subject="AEN Muwasaat Application Account Creation – Next Steps for Application Processing",
             message=f"""
@@ -133,55 +129,57 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number,form_n
             """
         )
 
-        return "User, related doctypes Created and email sent successfully!"
+        return "User, related doctypes created and email sent successfully!"
     else:
-        print("user already exist")
-        # Fetch form details based on ITS number
+        # User already exists case
         form_details = frappe.db.sql("""
-            SELECT
-                name AS form_name
-            FROM
-                `tabMuwasaat Form`
-            WHERE
-                hof_its_number = %s
+            SELECT name AS form_name
+            FROM `tabMuwasaat Form`
+            WHERE hof_its_number = %s
         """, hof_its_number, as_dict=True)
 
         if form_details:
-            name = form_details[0]['form_name']
-            # Generate the link to the Muwasaat Form
-            #form_url = f"http://127.0.0.1:8000/app/contact-details/{its_number}"
-
-            form_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
+            form_name = form_details[0]['form_name']
+            # Determine Muwasaat form URL based on purpose
+            if purpose == "Household":
+                muwasaat_url = f"https://muwasaat.anjuman-najmi.com/household/{form_name}"
+            elif purpose == "Education":
+                muwasaat_url = f"https://muwasaat.anjuman-najmi.com/education/{form_name}"
+            elif purpose == "Medical":
+                muwasaat_url = f"https://muwasaat.anjuman-najmi.com/medical/{form_name}"
+            else:
+                muwasaat_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
 
             frappe.sendmail(
-            recipients=[email_id],
-            subject="AEN Muwasaat Application Created – Next Steps for Application Processing",
-            message=f"""
-            Dear {first_name},<br><br>
+                recipients=[email_id],
+                subject="AEN Muwasaat Application Created – Next Steps for Application Processing",
+                message=f"""
+                Dear {first_name},<br><br>
 
-            We are pleased to inform you that your application has been successfully created.<br>
-            Your Application is unique to your ITS No. only. Do not share it with anyone else.<br><br>
+                We are pleased to inform you that your application has been successfully created.<br>
+                Your Application is unique to your ITS No. only. Do not share it with anyone else.<br><br>
 
-            Please follow the steps below to proceed with your application:<br>
-            1. Click the link below and log in using the credentials provided.<br>
-            2. Complete all the required information in the Muwasaat Form and submit your application.<br>
-            3. Attach all relevant attachments to the application in a single PDF file. The size of this PDF file should not exceed 1000 KB.<br>
-            4. Please verify all entered information accurately. Inaccurate or incomplete applications will be rejected.<br>
-            5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
+                Please follow the steps below to proceed with your application:<br>
+                1. Click the link below and log in using the credentials provided.<br>
+                2. Complete all the required information in the Muwasaat Form and submit your application.<br>
+                3. Attach all relevant attachments to the application in a single PDF file. The size of this PDF file should not exceed 1000 KB.<br>
+                4. Please verify all entered information accurately. Inaccurate or incomplete applications will be rejected.<br>
+                5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
 
-            <strong>Login Credentials:</strong><br>
-            Application URL: <a href="{form_url}">{form_url}</a><br>
-            Username: {email_id}<br>
-            Password: {password}<br><br>
+                <strong>Login Credentials:</strong><br>
+                Application URL: <a href="{muwasaat_url}">{muwasaat_url}</a><br>
+                Username: {email_id}<br>
+                Password: {password}<br><br>
 
-            If you have any questions or need further assistance, feel free to contact us.<br><br>
+                If you have any questions or need further assistance, feel free to contact us.<br><br>
 
-            Wassalam,<br>
-            Umoor Marafiq Burhaniyah<br>
-            Anjuman Najmi, Dubai.
-            """
-        )
-        return "User already exists and sent mail Successfully"
+                Wassalam,<br>
+                Umoor Marafiq Burhaniyah<br>
+                Anjuman Najmi, Dubai.
+                """
+            )
+        return "User already exists and mail sent successfully."
+
 
 
 @frappe.whitelist()
