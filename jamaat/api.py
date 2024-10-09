@@ -97,7 +97,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
 
         # Generate the link to the Contact Details
         form_url = f"https://muwasaat.anjuman-najmi.com/webform-application/{hof_its_number}"
-
+        muwasaat_url_app = f"https://muwasaat.anjuman-najmi.com"
         # Send the email
         frappe.sendmail(
             recipients=[email_id],
@@ -116,8 +116,8 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
             5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
 
             <strong>Login Credentials:</strong><br>
-            Contact Details URL: <a href="{form_url}">{form_url}</a><br>
-            Muwasaat URL: <a href="{muwasaat_url}">{muwasaat_url}</a><br>
+            
+            Muwasaat URL: <a href="{muwasaat_url_app}">{muwasaat_url_app}</a><br>
             Username: {email_id}<br>
             Password: {password}<br><br>
 
@@ -141,7 +141,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/medical/{form_name}"
         else:
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
-
+        muwasaat_url_app = f"https://muwasaat.anjuman-najmi.com"
         frappe.sendmail(
             recipients=[email_id],
             subject="AEN Muwasaat Application Created – Next Steps for Application Processing",
@@ -159,7 +159,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
             5. After verification, your application will be sent to the Marafiq Burhaniyah Team for further processing, and you will receive an email regarding the status of your application.<br><br>
 
             <strong>Login Credentials:</strong><br>
-            Application URL: <a href="{muwasaat_url}">{muwasaat_url}</a><br>
+            Application URL: <a href="{muwasaat_url_app}">{muwasaat_url_app}</a><br>
             Username: {email_id}<br>
             Password: {password}<br><br>
 
