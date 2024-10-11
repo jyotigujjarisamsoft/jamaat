@@ -175,20 +175,84 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
 
 
 @frappe.whitelist()
-def create_tracker(application_id, applicant_its_no):
+def create_tracker(application_id, applicant_its_no, purpose, first_name, mohalla, 
+                    hof_its_number,
+                   application_date, enayat_araz_aed_for_education,
+                    enayat_araz_aed_for_medical,
+                   enayat_araz_aed_for_household, email_id,hof_mobile_no):
     # Check if the user already exists
-    print("entered in tracker doctype")
-    # Create Contact Details doctype
+    print("Entered in tracker doctype")
+
+    # Fetch specific details from the Mohalla table
+    mohalla_details = frappe.db.sql("""
+        SELECT mb_team_member_name, rafiq, rafiq_contact_no, rafiq_name, amil_saheb_name,
+               amil_saheb, amil_saheb_contact_no, mushrif_name, mushrif_contact_no,
+               rafiq_email_id, mb_team_member, amil_saheb_email_id, mb_team_member_email_id,
+               mushrif_email_id, mb_team_member_contact_no
+        FROM `tabMohalla` WHERE mohalla=%s
+    """, (mohalla,), as_dict=True)
+    print("mohalla_details",mohalla_details)
+
+    # Fetch specific details from the KG Details table with additional filters
+    kg_details = frappe.db.sql("""
+        SELECT its_no, full_name, mobile_no, email_id 
+        FROM `tabKG Details` 
+        WHERE mohalla=%s AND role='SP Team Leader' AND purpose=%s
+    """, (mohalla, purpose), as_dict=True)
+    print("kg_details",kg_details)
+
+    if purpose == "Education":
+        muwasaat_amount_required = enayat_araz_aed_for_education
+    elif purpose == "Household":
+        muwasaat_amount_required = enayat_araz_aed_for_household
+    elif purpose == "Medical":
+        muwasaat_amount_required = enayat_araz_aed_for_medical
+    # Create Muwasaat Tracker doctype
     tracker_details = frappe.get_doc({
         "doctype": "Muwasaat Tracker",
-        "application_id":application_id,
-        "applicant_its_no": applicant_its_no
+        "application_id": application_id,
+        "applicant_its_no": applicant_its_no,
+        "purpose": purpose,
+        "applicant_name": first_name,
+        "mohalla": mohalla,
+        "application_date": application_date,
+        "muwasaat_amount_required": muwasaat_amount_required,
+        "email":email_id,
+        "applicant_contact_no":hof_mobile_no,
 
+        "amil_saheb_name":mohalla_details[0]['amil_saheb_name'],
+        "assigned_mb_team_member":mohalla_details[0]['mb_team_member_name'],
+        "rafiq_name":mohalla_details[0]['rafiq_name'],
+        
+        'rafiq_assigned':mohalla_details[0]['rafiq_name'],
+        'rafiq_its_no': mohalla_details[0]['rafiq'],
+        'rafiq_assigned_mobile': mohalla_details[0]['rafiq_contact_no'],
+        'rafiq_email_id': mohalla_details[0]['rafiq_email_id'],
+
+        'amil_saheb_its_no': mohalla_details[0]['amil_saheb'],
+        'amil_saheb_assigned': mohalla_details[0]['amil_saheb_name'],
+        'amil_saheb_mobile': mohalla_details[0]['amil_saheb_contact_no'],
+        'amil_saheb_email_id': mohalla_details[0]['amil_saheb_email_id'],
+
+        'mushrif_assigned': mohalla_details[0]['mushrif_name'],
+        'mushrif_mobile': mohalla_details[0]['mushrif_contact_no'],
+        'mushrif_email_id': mohalla_details[0]['mushrif_email_id'],
+
+        'mb_team_member_its_no': mohalla_details[0]['mb_team_member'],
+        'mb_team_member_full_name': mohalla_details[0]['mb_team_member_name'],
+        'mb_team_member_mobile_no': mohalla_details[0]['mb_team_member_contact_no'],
+        'mb_team_member_email_address': mohalla_details[0]['mb_team_member_email_id'],
+
+        'sp_team_lead_name': kg_details[0]['full_name'],
+        'sp_team_lead_its_no':  kg_details[0]['its_no'],
+        'sp_team_tl_mobile':  kg_details[0]['mobile_no'],
+        'mobile_no':  kg_details[0]['email_id'],
+        
         # Add more fields here if needed
     })
-    print("created in tracker doctype")
+    
+    print("Created in tracker doctype")
     tracker_details.insert(ignore_permissions=True)
-
     
 @frappe.whitelist()
 def check_previous_musawaat_data(purpose, hof_its_number, application_for_the_year):
