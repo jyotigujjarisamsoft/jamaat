@@ -188,7 +188,9 @@ def create_tracker(application_id, applicant_its_no, purpose, first_name, mohall
         SELECT mb_team_member_name, rafiq, rafiq_contact_no, rafiq_name, amil_saheb_name,
                amil_saheb, amil_saheb_contact_no, mushrif_name, mushrif_contact_no,
                rafiq_email_id, mb_team_member, amil_saheb_email_id, mb_team_member_email_id,
-               mushrif_email_id, mb_team_member_contact_no
+               mushrif_email_id, mb_team_member_contact_no,
+               finance_team_member_its_no,finance_team_member_name,
+               finance_team_email_id,finance_team_contact_no
         FROM `tabMohalla` WHERE mohalla=%s
     """, (mohalla,), as_dict=True)
     print("mohalla_details",mohalla_details)
@@ -247,6 +249,16 @@ def create_tracker(application_id, applicant_its_no, purpose, first_name, mohall
         'sp_team_lead_its_no':  kg_details[0]['its_no'],
         'sp_team_tl_mobile':  kg_details[0]['mobile_no'],
         'mobile_no':  kg_details[0]['email_id'],
+
+        'finance_its_number':mohalla_details[0]['finance_team_member_its_no'],
+        'finance_team_member_name':mohalla_details[0]['finance_team_member_name'],
+        'finance_mobile_numbe':mohalla_details[0]['finance_team_contact_no'],
+        'finance_team_mail_id':mohalla_details[0]['finance_team_email_id'],
+
+        'finance_team_its_no':mohalla_details[0]['finance_team_member_its_no'],
+        'finance_membre_name':mohalla_details[0]['finance_team_member_name'],
+        'finance_mobile_no':mohalla_details[0]['finance_team_contact_no'],
+        'finance_mail_id':mohalla_details[0]['finance_team_email_id'],
         
         # Add more fields here if needed
     })
