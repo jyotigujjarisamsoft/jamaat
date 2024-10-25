@@ -199,8 +199,8 @@ def create_tracker(application_id, applicant_its_no, purpose, first_name, mohall
     kg_details = frappe.db.sql("""
         SELECT its_no, full_name, mobile_no, email_id 
         FROM `tabKG Details` 
-        WHERE mohalla=%s AND role='SP Team Leader' AND purpose=%s
-    """, (mohalla, purpose), as_dict=True)
+        WHERE role='SP Team Leader' AND purpose=%s
+    """, (purpose), as_dict=True)
     print("kg_details",kg_details)
 
     if purpose == "Education":
