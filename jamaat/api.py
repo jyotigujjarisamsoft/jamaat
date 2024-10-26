@@ -300,6 +300,32 @@ def check_previous_musawaat_data_education(purpose, its, application_for_the_yea
     return education_form_details
 
 
+@frappe.whitelist()
+def get_combined_data():
+    query = """
+        SELECT
+            hd.its_number,
+            hd.name AS household_name,
+            hd.please_check_this_if_you_filled_all_data_before_submit AS household_status,
+            mf.name AS muwasaat_name,
+            mf.purpose AS muwasaat_purpose,
+            mf.application_for_the_year AS muwasaat_application_year,
+            mf.application_date,
+            mf.please_check_this_before_submit AS muwasaat_status,
+            mf.mohalla,
+            mf.first_name,
+            mf.hof_mobile_no
+        FROM
+            `tabHousehold Details` AS hd
+        LEFT JOIN
+            `tabMuwasaat Form` AS mf
+        ON
+            hd.its_number = mf.hof_its_number
+    """
+    data = frappe.db.sql(query, as_dict=True)
+    return data
+
+
 
         
 
