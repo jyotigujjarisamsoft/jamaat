@@ -311,6 +311,7 @@ def get_combined_data():
             mf.purpose AS muwasaat_purpose,
             mf.application_for_the_year AS muwasaat_application_year,
             mf.application_date,
+            mf.docstatus,
             mf.please_check_this_before_submit AS muwasaat_status,
             mf.mohalla,
             mf.first_name,
@@ -324,6 +325,65 @@ def get_combined_data():
     """
     data = frappe.db.sql(query, as_dict=True)
     return data
+
+@frappe.whitelist()
+def create_mbi_house_survey_form(hof_its_no):
+    # Check if the MBI House Survey Form already exists for the given ITS number
+    if not frappe.db.exists("MBI House Survey Form", {"hof_its_no": hof_its_no}):
+        # Create new MBI House Survey Form
+        its_details = frappe.get_doc({
+            "doctype": "MBI House Survey Form",
+            "hof_its_no": hof_its_no
+        })
+        its_details.insert(ignore_permissions=True)
+        frappe.db.commit()
+        return {"status": "success", "message": "MBI House Survey Form created successfully."}
+    else:
+        frappe.log_error(f"MBI House Survey Form for ITS No {hof_its_no} already exists.")
+        return {"status": "error", "message": f"MBI House Survey Form for ITS No {hof_its_no} already exists."}
+
+@frappe.whitelist()
+def create_mbi_family_form(hof_its_no):
+    # Fetch ITS data associated with the given hof_its_no
+    its_data = frappe.db.sql("""
+        SELECT *
+        FROM `tabITS Data`
+        WHERE hof_its_no = %s
+    """, (hof_its_no,), as_dict=True)
+
+    # Initialize a response dictionary
+    response = {"messages": []}
+
+    # Loop through each entry in the ITS data
+    for entry in its_data:
+        its_no = entry.get('name')  # Assuming 'name' is the unique identifier for each family member
+
+        # Check if the MBI House Survey Form already exists for the given ITS number
+        if not frappe.db.exists("MBI Form - Family", {"its_no": its_no}):
+            # Create new MBI House Survey Form
+            its_details = frappe.get_doc({
+                "doctype": "MBI Form - Family",
+                "its_no": its_no,
+                "hof_its_no": hof_its_no,
+                "relation_with_hof": entry.get('relation_with_hof'),
+                "full_name": entry.get('full_name'),
+                "email_id": entry.get('email_address'),
+                "mobile_no": entry.get('mobile_no'),
+                "mohalla": entry.get('mohalla')
+                # Add other fields as required
+            })
+            its_details.insert(ignore_permissions=True)
+            frappe.db.commit()
+            response["messages"].append(f"Form created for ITS No: {its_no}.")
+        else:
+            response["messages"].append(f"Form for ITS No: {its_no} already exists.")
+
+    # Finalize response
+    if response["messages"]:
+        return {"status": "success", "messages": response["messages"]}
+    else:
+        return {"status": "error", "messages": ["No operations performed."]}
+
 
 
 
