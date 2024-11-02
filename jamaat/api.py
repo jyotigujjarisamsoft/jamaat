@@ -385,6 +385,43 @@ def create_mbi_family_form(hof_its_no):
         return {"status": "error", "messages": ["No operations performed."]}
 
 
+@frappe.whitelist()
+def get_session_user_sp_member():
+    user_info = frappe.get_doc("User", frappe.session.user)
+    email_id = user_info.email
+    print("email_id",email_id)
+    
+    query = """
+        SELECT
+            *
+        FROM
+            `tabMuwasaat Tracker`
+        WHERE
+            mobile_no = %s
+    """
+    data = frappe.db.sql(query, (email_id), as_dict=True)
+    print("data",data)
+    return data
+
+@frappe.whitelist()
+def get_session_user_sp_lead():
+    user_info = frappe.get_doc("User", frappe.session.user)
+    email_id = user_info.email
+    
+
+    query = """
+        SELECT
+            *
+        FROM
+            `tabMuwasaat Tracker`
+        WHERE
+            sp_mobile_no = %s
+    """
+    data = frappe.db.sql(query, (email_id), as_dict=True)
+    print("data",data)
+    return data
+
+
 
 
         
