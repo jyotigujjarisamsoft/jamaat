@@ -289,11 +289,11 @@ def check_previous_musawaat_data_education(purpose, its, application_for_the_yea
     print("entered in education_form_details doctype")
     # Create Contact Details doctype
     education_form_details = frappe.db.sql("""
-        SELECT c.its,c.parent
+        SELECT c.its_no,c.parent
         FROM `tabMuwasaat Form` AS m
-        JOIN `tabMultiple Children Details` AS c 
-        ON m.name = c.parent 
-        and m.purpose = %s AND c.its = %s AND m.application_for_the_year = %s
+        JOIN `tabtest` AS c 
+        ON m.name = c.parent  
+        and m.purpose = %s AND c.its_no = %s AND m.application_for_the_year = %s
         """, (purpose, its, application_for_the_year), as_dict=True)
     
     print("check_previous_musawaat_data_education", education_form_details)
