@@ -284,7 +284,7 @@ def check_previous_musawaat_data(purpose, hof_its_number, application_for_the_ye
     return form_details
 
 @frappe.whitelist()
-def check_previous_musawaat_data_education(purpose, its, application_for_the_year):
+def check_previous_musawaat_data_education(purpose, its_no, application_for_the_year):
     # Check if the user already exists
     print("entered in education_form_details doctype")
     # Create Contact Details doctype
