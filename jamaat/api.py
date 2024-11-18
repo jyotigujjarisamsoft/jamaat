@@ -294,7 +294,7 @@ def check_previous_musawaat_data_education(purpose, its_no, application_for_the_
         JOIN `tabtest` AS c 
         ON m.name = c.parent  
         and m.purpose = %s AND c.its_no = %s AND m.application_for_the_year = %s
-        """, (purpose, its, application_for_the_year), as_dict=True)
+        """, (purpose, its_no, application_for_the_year), as_dict=True)
     
     print("check_previous_musawaat_data_education", education_form_details)
     return education_form_details
