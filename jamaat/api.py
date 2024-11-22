@@ -421,6 +421,86 @@ def get_session_user_sp_lead():
     print("data",data)
     return data
 
+@frappe.whitelist()
+def fetch_family_details(application_id, hof_its_no, mohalla):
+    if not application_id or not hof_its_no or not mohalla:
+        frappe.throw("Application ID, HoF ITS Number, and Mohalla are required")
+
+    # Fetch Family Details based on Application ID, HoF ITS Number, and Mohalla
+    family_details = frappe.get_all(
+        "Family Details",
+        filters={
+            "application_id": application_id,
+            "hof_its_no": hof_its_no,
+            "mohalla": mohalla
+        },
+        fields=["name", "application_id", "hof_its_no", "mohalla"]
+    )
+    print("family_details",family_details)
+    if not family_details:
+        return "No matching family details found."
+
+    family_members = frappe.get_all(
+        "Members Details",
+        filters={"parent": application_id},
+        fields=["*"]  # Fetch all fields
+    )
+    print("family_members",family_members)
+
+    # Create ITS Data for each family member
+    for member in family_members:
+        its_data = frappe.new_doc("ITS Data")
+        its_data.hof_its_no = hof_its_no
+        its_data.mohalla = mohalla
+        its_data.its_no = member.get("its_no")
+        its_data.full_name = member.get("full_name")
+        its_data.age = member.get("age")
+        its_data.gender = member.get("gender")
+        its_data.mobile_no = member.get("mobile_no")
+        its_data.email_address = member.get("email_address")
+        its_data.relation_with_hof = member.get("relation_with_hof")
+        its_data.hof_fm_type="FM"
+        its_data.enabled=1
+        
+        # Save the new ITS Data record
+        its_data.insert()
+        its_data.save()
+
+        fts_data=frappe.new_doc("MBI Form - Family")
+        fts_data.hof_its_no = hof_its_no
+        fts_data.mohalla = mohalla
+        fts_data.its_no = member.get("its_no")
+        fts_data.full_name = member.get("full_name")
+        fts_data.age = member.get("age")
+        fts_data.gender = member.get("gender")
+        fts_data.mobile_no = member.get("mobile_no")
+        fts_data.email_id = member.get("email_address")
+        fts_data.select_this_persons_relationship_with_hof = member.get("relation_with_hof")
+        
+        
+        # Save the new ITS Data record
+        fts_data.insert()
+        fts_data.save()
+
+    hof_data = frappe.get_doc("ITS Data", {"hof_its_no": hof_its_no, "its_no": hof_its_no})
+    print("hof_data",hof_data)
+    if hof_data:
+        hof_mbi_form = frappe.new_doc("MBI Form - Family")
+        hof_mbi_form.hof_its_no = hof_its_no
+        hof_mbi_form.mohalla = mohalla
+        hof_mbi_form.its_no = hof_data.its_no
+        hof_mbi_form.full_name = hof_data.full_name
+        hof_mbi_form.age = hof_data.age
+        hof_mbi_form.gender = hof_data.gender
+        hof_mbi_form.mobile_no = hof_data.mobile_no
+        hof_mbi_form.email_id = hof_data.email_address
+        hof_mbi_form.select_this_persons_relationship_with_hof = "HOF"
+        hof_mbi_form.insert()
+        hof_mbi_form.save()
+
+
+    return family_details
+
 
 
 
