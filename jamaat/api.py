@@ -422,7 +422,7 @@ def get_session_user_sp_lead():
     return data
 
 @frappe.whitelist()
-def fetch_family_details(application_id, hof_its_no, mohalla):
+def fetch_family_details(application_id, hof_its_no, mohalla,name):
     if not application_id or not hof_its_no or not mohalla:
         frappe.throw("Application ID, HoF ITS Number, and Mohalla are required")
 
@@ -442,7 +442,7 @@ def fetch_family_details(application_id, hof_its_no, mohalla):
 
     family_members = frappe.get_all(
         "Members Details",
-        filters={"parent": application_id},
+        filters={"parent": name},
         fields=["*"]  # Fetch all fields
     )
     print("family_members",family_members)
