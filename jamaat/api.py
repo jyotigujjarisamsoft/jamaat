@@ -501,6 +501,113 @@ def fetch_family_details(application_id, hof_its_no, mohalla):
 
     return family_details
 
+@frappe.whitelist()
+def create_its_data_and_details(data):
+    import json
+    from frappe import msgprint
+
+    data = json.loads(data) if isinstance(data, str) else data
+    hof = data.get("hof")
+    family_members = data.get("family_members", [])
+
+    if not hof:
+        msgprint("Missing HOF data.")
+        return
+
+    hof_its_no = hof.get("its_no")
+    if not hof_its_no:
+        msgprint("HOF its_no is required.")
+        return
+
+    # --- Step 1: Sync with ITS Details (Parent Doctype) ---
+    existing_details_name = frappe.db.get_value("Its Details", {"hof_its_id": hof_its_no}, "name")
+
+    if existing_details_name:
+        details_doc = frappe.get_doc("Its Details", existing_details_name)
+        details_doc.hof_full_name = hof.get("full_name")
+        details_doc.email_address = hof.get("email_address")
+        details_doc.mohalla = hof.get("mohalla")
+        details_doc.mobile_no = hof.get("mobile_no")
+        details_doc.jamaat_clearance = hof.get("jamaat_clearance")
+        details_doc.save(ignore_permissions=True)
+        msgprint(f"ITS Details updated: {details_doc.name}")
+    else:
+        details_doc = frappe.new_doc("Its Details")
+        details_doc.hof_its_id = hof_its_no
+        details_doc.hof_full_name = hof.get("full_name")
+        details_doc.email_address = hof.get("email_address")
+        details_doc.mohalla = hof.get("mohalla")
+        details_doc.mobile_no = hof.get("mobile_no")
+        details_doc.jamaat_clearance = hof.get("jamaat_clearance")
+        details_doc.insert(ignore_permissions=True)
+        msgprint(f"ITS Details created: {details_doc.name}")
+
+    # --- Step 2: Sync with ITS Data for HOF ---
+    existing_hof_name = frappe.db.get_value("ITS Data", {"its_no": hof_its_no}, "name")
+
+    if existing_hof_name:
+        hof_doc = frappe.get_doc("ITS Data", existing_hof_name)
+        hof_doc.full_name = hof.get("full_name")
+        hof_doc.mohalla = hof.get("mohalla")
+        hof_doc.mobile_no = hof.get("mobile_no")
+        hof_doc.email_address = hof.get("email_address")
+        hof_doc.hof_fm_type = hof.get("hof_or_family_member")
+        hof_doc.sabeel_clearance = hof.get("jamaat_clearance")
+        hof_doc.hof_its_no = hof_its_no
+        hof_doc.save(ignore_permissions=True)
+        msgprint(f"HOF in ITS Data updated: {hof_doc.name}")
+    else:
+        hof_doc = frappe.new_doc("ITS Data")
+        hof_doc.its_no = hof_its_no
+        hof_doc.full_name = hof.get("full_name")
+        hof_doc.mohalla = hof.get("mohalla")
+        hof_doc.mobile_no = hof.get("mobile_no")
+        hof_doc.email_address = hof.get("email_address")
+        hof_doc.hof_fm_type = hof.get("hof_or_family_member")
+        hof_doc.sabeel_clearance = hof.get("jamaat_clearance")
+        hof_doc.hof_its_no = hof_its_no
+        hof_doc.insert(ignore_permissions=True)
+        msgprint(f"HOF in ITS Data created: {hof_doc.name}")
+
+    # --- Step 3: Sync Family Members in ITS Data ---
+    for member in family_members:
+        fm_its_no = member.get("its_no")
+        if not fm_its_no:
+            continue  # skip blank rows
+
+        existing_fm_name = frappe.db.get_value("ITS Data", {"its_no": fm_its_no}, "name")
+
+        if existing_fm_name:
+            fm_doc = frappe.get_doc("ITS Data", existing_fm_name)
+            fm_doc.full_name = member.get("full_name")
+            fm_doc.mobile_no = member.get("mobile_no")
+            fm_doc.email_address = member.get("email_address")
+            fm_doc.hof_fm_type = member.get("hof_or_family_member")
+            fm_doc.relation_with_hof = member.get("relation_with_hof")
+            # Inherit from HOF
+            fm_doc.mohalla = hof.get("mohalla")
+            fm_doc.sabeel_clearance = hof.get("jamaat_clearance")
+            fm_doc.hof_its_no = hof_its_no
+            fm_doc.save(ignore_permissions=True)
+            msgprint(f"Family Member in ITS Data updated: {fm_doc.name}")
+        else:
+            fm_doc = frappe.new_doc("ITS Data")
+            fm_doc.its_no = fm_its_no
+            fm_doc.full_name = member.get("full_name")
+            fm_doc.mobile_no = member.get("mobile_no")
+            fm_doc.email_address = member.get("email_address")
+            fm_doc.hof_fm_type = member.get("hof_or_family_member")
+            fm_doc.relation_with_hof = member.get("relation_with_hof")
+            # Inherit from HOF
+            fm_doc.mohalla = hof.get("mohalla")
+            fm_doc.sabeel_clearance = hof.get("jamaat_clearance")
+            fm_doc.hof_its_no = hof_its_no
+            fm_doc.insert(ignore_permissions=True)
+            msgprint(f"Family Member in ITS Data created: {fm_doc.name}")
+
+    frappe.db.commit()
+
+    return {"status": "success", "hof": hof_doc.name, "details": details_doc.name}
 
 
 
