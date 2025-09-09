@@ -610,6 +610,58 @@ def create_its_data_and_details(data):
     return {"status": "success", "hof": hof_doc.name, "details": details_doc.name}
 
 
+@frappe.whitelist()
+def get_its_data_by_id(its_id):
+    """
+    Fetches HOF details and all associated family members from the ITS Data DocType.
+    
+    :param its_id: The ITS ID to search for the HOF.
+    :return: A dictionary with 'hof_data' and 'family_members_data' lists.
+    """
+    
+    try:
+        # Fetch the HOF record
+        # The frappe.get_list method is used to get a list of documents
+        # that match the specified filters.
+        hof_data = frappe.get_list(
+            "ITS Data", 
+            filters={
+                "its_no": its_id,
+                "hof_fm_type": "HOF"
+            },
+            fields=["*"]  # Fetch all fields
+        )
+        # Print the HOF data to the console for debugging
+        print(f"HOF Data for ITS ID {its_id}: {hof_data}")
+
+        # Fetch all family members associated with the HOF
+        family_members_data = frappe.get_list(
+            "ITS Data",
+            filters={
+                "hof_its_no": its_id,
+                "hof_fm_type": "FM"
+            },
+            fields=["*"] # Fetch all fields
+        )
+        # Print the family members data to the console for debugging
+        print(f"Family Members Data for HOF ITS ID {its_id}: {family_members_data}")
+
+        # Provide a pop-up message with the results
+        #frappe.msgprint(f"HOF Data: {hof_data}\n\nFamily Members Data: {family_members_data}")
+
+        return {
+            "hof_data": hof_data,
+            "family_members_data": family_members_data
+        }
+            
+    except Exception as e:
+        # Handle any exceptions that might occur
+        frappe.log_error(str(e), "ITS Data Fetch Error")
+        frappe.msgprint(f"An error occurred: {str(e)}")
+        return {
+            "hof_data": [],
+            "family_members_data": []
+        }
 
         
 
