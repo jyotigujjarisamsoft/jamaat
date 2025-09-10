@@ -520,19 +520,19 @@ def create_its_data_and_details(data):
         return
 
     # --- Step 1: Sync with ITS Details (Parent Doctype) ---
-    existing_details_name = frappe.db.get_value("Its Details", {"hof_its_id": hof_its_no}, "name")
+    existing_details_name = frappe.db.get_value("ITS Data and Form Creation", {"hof_its_id": hof_its_no}, "name")
 
     if existing_details_name:
-        details_doc = frappe.get_doc("Its Details", existing_details_name)
+        details_doc = frappe.get_doc("ITS Data and Form Creation", existing_details_name)
         details_doc.hof_full_name = hof.get("full_name")
         details_doc.email_address = hof.get("email_address")
         details_doc.mohalla = hof.get("mohalla")
         details_doc.mobile_no = hof.get("mobile_no")
         details_doc.jamaat_clearance = hof.get("jamaat_clearance")
         details_doc.save(ignore_permissions=True)
-        msgprint(f"ITS Details updated: {details_doc.name}")
+        msgprint(f"ITS Data updated: {details_doc.name}")
     else:
-        details_doc = frappe.new_doc("Its Details")
+        details_doc = frappe.new_doc("ITS Data and Form Creation")
         details_doc.hof_its_id = hof_its_no
         details_doc.hof_full_name = hof.get("full_name")
         details_doc.email_address = hof.get("email_address")
