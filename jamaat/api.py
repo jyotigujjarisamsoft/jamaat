@@ -666,20 +666,20 @@ def get_its_data_by_id(its_id):
         
 @frappe.whitelist()
 def create_muwasaat_form(year_of_araz, date, email_id, first_name, hof_its_number, mohalla, hof_mobile_no, purpose):
-    # Check if form already exists
-    existing_form = frappe.db.exists(
-        "Muwasaat Form",
-        {
-            "application_for_the_year": year_of_araz,
-            "purpose": purpose,
-            "hof_its_number": hof_its_number
-        }
-    )
+    # Only validate duplicates if purpose is "Education"
+    if purpose == "Education":
+        existing_form = frappe.db.exists(
+            "Muwasaat Form",
+            {
+                "application_for_the_year": year_of_araz,
+                "purpose": purpose,
+                "hof_its_number": hof_its_number
+            }
+        )
+        if existing_form:
+            return {"error": f"Muwasaat Form already exists: {existing_form}"}
 
-    if existing_form:
-        return {"error": f"Muwasaat Form already exists: {existing_form}"}
-
-    # Create new form if not exists
+    # Create new form (always allowed if purpose != Education)
     doc = frappe.new_doc("Muwasaat Form")
     doc.application_for_the_year = year_of_araz
     doc.application_date = date
@@ -693,3 +693,4 @@ def create_muwasaat_form(year_of_araz, date, email_id, first_name, hof_its_numbe
     doc.save()
 
     return {"muwasaat_form_name": doc.name}
+
