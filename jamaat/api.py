@@ -437,12 +437,13 @@ def fetch_family_details(application_id, hof_its_no, mohalla):
         fields=["name", "application_id", "hof_its_no", "mohalla"]
     )
     print("family_details",family_details)
+    parent_name = family_details[0].name
     if not family_details:
         return "No matching family details found."
 
     family_members = frappe.get_all(
         "Members Details",
-        filters={"parent": application_id},
+        filters={"parent": parent_name},
         fields=["*"]  # Fetch all fields
     )
     print("family_members",family_members)
