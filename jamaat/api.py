@@ -449,22 +449,7 @@ def fetch_family_details(application_id, hof_its_no, mohalla):
 
     # Create ITS Data for each family member
     for member in family_members:
-        its_data = frappe.new_doc("ITS Data")
-        its_data.hof_its_no = hof_its_no
-        its_data.mohalla = mohalla
-        its_data.its_no = member.get("its_no")
-        its_data.full_name = member.get("full_name")
-        its_data.age = member.get("age")
-        its_data.gender = member.get("gender")
-        its_data.mobile_no = member.get("mobile_no")
-        its_data.email_address = member.get("email_address")
-        its_data.relation_with_hof = member.get("relation_with_hof")
-        its_data.hof_fm_type="FM"
-        its_data.enabled=1
         
-        # Save the new ITS Data record
-        its_data.insert()
-        its_data.save()
 
         fts_data=frappe.new_doc("MBI Form - Family")
         fts_data.hof_its_no = hof_its_no
