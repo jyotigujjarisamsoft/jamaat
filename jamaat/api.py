@@ -679,4 +679,67 @@ def create_muwasaat_form(year_of_araz, date, email_id, first_name, hof_its_numbe
     doc.save()
 
     return {"muwasaat_form_name": doc.name}
+    
+    
+  
+@frappe.whitelist()
+def create_mbi_form_family(data):
+    import json
+    from frappe import msgprint
+
+    data = json.loads(data) if isinstance(data, str) else data
+
+    hof_its_id = data.get("hof_its_id")
+    if not hof_its_id:
+        msgprint("HOF ITS No is required.")
+        return
+
+    created_or_updated = []
+
+    # --- Create or Update MBI Form for HOF ---
+    if frappe.db.exists("MBI Form - Family", {"its_no": hof_its_id}):
+        hof_doc = frappe.get_doc("MBI Form - Family", {"its_no": hof_its_id})
+    else:
+        hof_doc = frappe.new_doc("MBI Form - Family")
+
+    hof_doc.hof_its_no = hof_its_id
+    hof_doc.its_no = hof_its_id
+    hof_doc.full_name = data.get("hof_full_name")
+    hof_doc.email_id = data.get("email_address")
+    hof_doc.mohalla = data.get("mohalla")
+    hof_doc.mobile_no = data.get("mobile_no")
+    hof_doc.select_this_persons_relationship_with_hof = "HOF"
+    hof_doc.age = data.get("age")
+
+    hof_doc.save(ignore_permissions=True)
+    created_or_updated.append(hof_doc.name)
+
+    # --- Handle Family Members ---
+    for member in data.get("its_family_details", []):
+        fm_its_no = member.get("family_member_its_id")
+        if not fm_its_no:
+            continue  # skip blank rows
+
+        # --- Create or Update separate MBI Form for each family member ---
+        if frappe.db.exists("MBI Form - Family", {"its_no": fm_its_no}):
+            fm_doc = frappe.get_doc("MBI Form - Family", {"its_no": fm_its_no})
+        else:
+            fm_doc = frappe.new_doc("MBI Form - Family")
+
+        fm_doc.hof_its_no = hof_its_id
+        fm_doc.its_no = fm_its_no
+        fm_doc.full_name = member.get("family_member_full_name")
+        fm_doc.email_id = member.get("email_address")
+        fm_doc.mobile_no = member.get("mobile_no")
+        fm_doc.age = member.get("age")
+        fm_doc.select_this_persons_relationship_with_hof = member.get("relation_with_hof")
+        fm_doc.mohalla = data.get("mohalla")  # same mohalla as parent
+
+        fm_doc.save(ignore_permissions=True)
+        created_or_updated.append(fm_doc.name)
+
+    frappe.db.commit()
+
+    return {"status": "success"}
+
 
