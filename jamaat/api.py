@@ -92,6 +92,8 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/education/{form_name}"
         elif purpose == "Medical":
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/medical/{form_name}"
+        elif purpose == "Others":
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/others/{form_name}"
         else:
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
 
@@ -139,6 +141,8 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/education/{form_name}"
         elif purpose == "Medical":
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/medical/{form_name}"
+        elif purpose == "Others":
+            muwasaat_url = f"https://muwasaat.anjuman-najmi.com/others/{form_name}"
         else:
             muwasaat_url = f"https://muwasaat.anjuman-najmi.com/muwasaat-main-application-/{form_name}"
         muwasaat_url_app = f"https://muwasaat.anjuman-najmi.com"
@@ -209,6 +213,8 @@ def create_tracker(application_id, applicant_its_no, purpose, first_name, mohall
         muwasaat_amount_required = enayat_araz_aed_for_household
     elif purpose == "Medical":
         muwasaat_amount_required = enayat_araz_aed_for_medical
+    elif purpose == "Others":
+        muwasaat_amount_required = enayat_araz_aed_for_others
     # Create Muwasaat Tracker doctype
     tracker_details = frappe.get_doc({
         "doctype": "Muwasaat Tracker",
