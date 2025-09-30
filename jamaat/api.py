@@ -182,7 +182,7 @@ def create_user_on_approve(email_id, first_name, password, hof_its_number, form_
 def create_tracker(application_id, applicant_its_no, purpose, first_name, mohalla, 
                     hof_its_number,
                    application_date, enayat_araz_aed_for_education,
-                    enayat_araz_aed_for_medical,
+                    enayat_araz_aed_for_medical,enayat_araz_aed_for_others,
                    enayat_araz_aed_for_household, email_id,hof_mobile_no):
     # Check if the user already exists
     print("Entered in tracker doctype")
