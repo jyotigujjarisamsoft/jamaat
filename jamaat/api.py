@@ -333,7 +333,7 @@ def get_combined_data():
     return data
 
 @frappe.whitelist()
-def create_mbi_house_survey_form(hof_its_no):
+def old_create_mbi_house_survey_form(hof_its_no):
     # Check if the MBI House Survey Form already exists for the given ITS number
     if not frappe.db.exists("MBI House Survey Form", {"hof_its_no": hof_its_no}):
         # Create new MBI House Survey Form
@@ -347,6 +347,72 @@ def create_mbi_house_survey_form(hof_its_no):
     else:
         frappe.log_error(f"MBI House Survey Form for ITS No {hof_its_no} already exists.")
         return {"status": "error", "message": f"MBI House Survey Form for ITS No {hof_its_no} already exists."}
+        
+@frappe.whitelist()
+def create_mbi_house_survey_form(hof_its_no, full_name=None, email_address=None, mobile_no=None, mohalla=None):
+    """
+    Create or update MBI House Survey Form for the given ITS number.
+    If record exists, update the provided fields; otherwise, create a new record.
+    """
+    existing = frappe.db.get_value("MBI House Survey Form", {"hof_its_no": hof_its_no}, ["name"], as_dict=True)
+
+    if existing:
+        # Update existing record
+        doc = frappe.get_doc("MBI House Survey Form", existing["name"])
+        doc.full_name = full_name or doc.full_name
+        doc.email_address = email_address or doc.email_address
+        doc.mobile_no = mobile_no or doc.mobile_no
+        doc.mohalla = mohalla or doc.mohalla
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {"status": "success", "message": "MBI House Survey Form already exists. Updated successfully."}
+
+    else:
+        # Create new record
+        doc = frappe.new_doc("MBI House Survey Form")
+        doc.hof_its_no = hof_its_no
+        doc.full_name = full_name or ""
+        doc.email_address = email_address or ""
+        doc.mobile_no = mobile_no or ""
+        doc.mohalla = mohalla or ""
+        doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {"status": "success", "message": "MBI House Survey Form created successfully."}
+
+@frappe.whitelist()
+def create_household_details_doctype(hof_its_no, full_name=None, email_address=None, mobile_no=None, mohalla=None):
+    """
+    Create or update MBI House Survey Form for the given ITS number.
+    If record exists, update the provided fields; otherwise, create a new record.
+    """
+    existing = frappe.db.get_value("Household Details", {"its_number": hof_its_no}, ["name"], as_dict=True)
+
+    if existing:
+        # Update existing record
+        doc = frappe.get_doc("Household Details", existing["name"])
+        doc.full_name = full_name or doc.full_name
+        doc.email_id = email_address or doc.email_address
+        doc.mobile_number = mobile_no or doc.mobile_no
+        doc.mohalla = mohalla or doc.mohalla
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {"status": "success", "message": "Household Details already exists. Updated successfully."}
+
+    else:
+        # Create new record
+        doc = frappe.new_doc("Household Details")
+        doc.its_number = hof_its_no
+        doc.full_name = full_name or ""
+        doc.email_id = email_address or ""
+        doc.mobile_number = mobile_no or ""
+        doc.mohalla = mohalla or ""
+        doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {"status": "success", "message": "Household Details doctype created successfully."}
 
 @frappe.whitelist()
 def create_mbi_family_form(hof_its_no):
