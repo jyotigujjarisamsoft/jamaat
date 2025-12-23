@@ -814,4 +814,60 @@ def create_mbi_form_family(data):
 
     return {"status": "success"}
 
+import frappe
+import requests
+import json
+
+@frappe.whitelist()
+def send_muwasaat_to_jms(docname):
+    try:
+        doc = frappe.get_doc("Muwasaat Tracker", docname)
+
+        # Prevent duplicate sync
+        if doc.jms_synced:
+            return {"status": "skipped", "message": "Already synced"}
+
+        
+
+        payload = {
+            "strkey": "dubaijms53*$",
+            "ITSID": str(doc.applicant_its_no),
+            "EnayatYear": str(doc.application_date),
+            "MuwasaatAmount": str(doc.cheque_amount)
+        }
+
+        url = "https://dubaiapi.jamaatonline.in/api/Accounts/PostMuwasaatData"
+        headers = {"Content-Type": "application/json"}
+
+        response = requests.post(
+            url,
+            data=json.dumps(payload),
+            headers=headers,
+            timeout=20
+        )
+
+        resp_json = response.json()
+
+        # Store response
+        doc.jms_response = json.dumps(resp_json, indent=2)
+
+        if resp_json.get("Status") == 1:
+            doc.jms_synced = 1
+
+        doc.save(ignore_permissions=True)
+
+        return {
+            "status": "success",
+            "response": resp_json
+        }
+
+    except Exception:
+        frappe.log_error(
+            frappe.get_traceback(),
+            "JMS Muwasaat API Error"
+        )
+        return {"status": "failed"}
+
+
+
 
