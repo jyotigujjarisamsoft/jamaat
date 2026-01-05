@@ -817,6 +817,7 @@ def create_mbi_form_family(data):
 import frappe
 import requests
 import json
+from datetime import datetime
 
 @frappe.whitelist()
 def send_muwasaat_to_jms(docname):
@@ -832,7 +833,7 @@ def send_muwasaat_to_jms(docname):
         payload = {
             "strkey": "dubaijms53*$",
             "ITSID": str(doc.applicant_its_no),
-            "EnayatYear": str(doc.application_date),
+            "EnayatYear": str(doc.application_date.year),
             "MuwasaatAmount": str(doc.cheque_amount)
         }
 
