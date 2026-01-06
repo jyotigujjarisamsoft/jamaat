@@ -833,11 +833,12 @@ def send_muwasaat_to_jms(docname):
         payload = {
             "strkey": "dubaijms53*$",
             "ITSID": str(doc.applicant_its_no),
-            "EnayatYear": str(doc.application_date.year),
+            "EnayatYear": str(doc.cheque_collected_date.year),
             "MuwasaatAmount": str(doc.cheque_amount)
+            "Purpose": str(doc.purpose)
         }
 
-        url = "https://dubaiapi.jamaatonline.in/api/Accounts/PostMuwasaatData"
+        url = "https://api-jms-portal.azurewebsites.net//api/Accounts/PostMuwasaatData"
         headers = {"Content-Type": "application/json"}
 
         response = requests.post(
