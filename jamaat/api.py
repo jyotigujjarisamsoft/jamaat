@@ -818,6 +818,9 @@ import frappe
 import requests
 import json
 from datetime import datetime
+import frappe
+import requests
+import json
 
 @frappe.whitelist()
 def send_muwasaat_to_jms(docname):
@@ -828,47 +831,73 @@ def send_muwasaat_to_jms(docname):
         if doc.jms_synced:
             return {"status": "skipped", "message": "Already synced"}
 
-        
-
+        # Prepare payload
         payload = {
             "strkey": "dubaijms53*$",
             "ITSID": str(doc.applicant_its_no),
             "EnayatYear": str(doc.cheque_collected_date.year),
-            "MuwasaatAmount": str(doc.cheque_amount)
+            "MuwasaatAmount": str(doc.cheque_amount),
             "Purpose": str(doc.purpose)
         }
 
         url = "https://api-jms-portal.azurewebsites.net//api/Accounts/PostMuwasaatData"
         headers = {"Content-Type": "application/json"}
 
-        response = requests.post(
-            url,
-            data=json.dumps(payload),
-            headers=headers,
-            timeout=20
-        )
+        try:
+            # Send request
+            response = requests.post(
+                url,
+                data=json.dumps(payload),
+                headers=headers,
+                timeout=20
+            )
 
-        resp_json = response.json()
+            try:
+                resp_json = response.json()
+            except Exception as e:
+                resp_json = {
+                    "Status": 0,
+                    "Message": f"Invalid JSON response: {str(e)}",
+                    "RawResponse": response.text
+                }
 
-        # Store response
+        except requests.exceptions.RequestException as e:
+            # Handle network/API errors
+            resp_json = {
+                "Status": 0,
+                "Message": f"Request failed: {str(e)}"
+            }
+
+        # Store response in the document
         doc.jms_response = json.dumps(resp_json, indent=2)
 
+        # Mark as synced only if Status is 1
         if resp_json.get("Status") == 1:
             doc.jms_synced = 1
 
         doc.save(ignore_permissions=True)
 
+        # Return response
         return {
-            "status": "success",
+            "status": "success" if resp_json.get("Status") == 1 else "failed",
             "response": resp_json
         }
 
-    except Exception:
-        frappe.log_error(
-            frappe.get_traceback(),
-            "JMS Muwasaat API Error"
-        )
-        return {"status": "failed"}
+    except Exception as e:
+        # Handle unexpected errors
+        if 'doc' in locals():
+            doc.jms_response = json.dumps({
+                "Status": 0,
+                "Message": f"Unexpected error: {str(e)}"
+            }, indent=2)
+            doc.save(ignore_permissions=True)
+
+        frappe.log_error(frappe.get_traceback(), "JMS Muwasaat API Error")
+        return {
+            "status": "failed",
+            "response": {"Status": 0, "Message": str(e)}
+        }
+
 
 
 
