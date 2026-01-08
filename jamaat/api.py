@@ -823,7 +823,7 @@ import requests
 import json
 
 @frappe.whitelist()
-def send_muwasaat_to_jms(docname):
+def old_send_muwasaat_to_jms(docname):
     try:
         doc = frappe.get_doc("Muwasaat Tracker", docname)
 
@@ -899,6 +899,50 @@ def send_muwasaat_to_jms(docname):
         }
 
 
+@frappe.whitelist()
+def send_muwasaat_to_jms(docname):
+    doc = frappe.get_doc("Muwasaat Tracker", docname)
+
+    if doc.jms_synced:
+        return {"status": "skipped", "message": "Already synced"}
+
+    payload = {
+        "strkey": "dubaijms53*$",
+        "ITSID": str(doc.applicant_its_no),
+        "EnayatYear": str(doc.cheque_collected_date.year),
+        "MuwasaatAmount": str(doc.cheque_amount),
+        "Purpose": str(doc.purpose)
+    }
+
+    url = "https://api-jms-portal.azurewebsites.net//api/Accounts/PostMuwasaatData"
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=20
+        )
+        resp_json = response.json()
+    except Exception as e:
+        resp_json = {"Status": 0, "Message": str(e)}
+
+    # ✅ SAFE update after submit
+    frappe.db.set_value(
+        "Muwasaat Tracker",
+        doc.name,
+        {
+            "jms_response": json.dumps(resp_json, indent=2),
+            "jms_synced": 1 if resp_json.get("Status") == 1 else 0
+        },
+        update_modified=False
+    )
+
+    return {
+        "status": "success" if resp_json.get("Status") == 1 else "failed",
+        "response": resp_json
+    }
 
 
 
